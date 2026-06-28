@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Torwart">
+<meta name="theme-color" content="#0a1628">
+<title>Torwarttraining</title>
+<style>
+:root{
+  --bg:#0a1628;--bg2:#0f1f3d;--bg3:#162848;
+  --accent:#f0a500;--accent2:#e8931a;
+  --text:#f0f4ff;--text2:#8fa0c0;--text3:#4a6080;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --green:#22c55e;--green-bg:rgba(34,197,94,0.12);--green-border:rgba(34,197,94,0.25);
+  --radius:14px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:calc(60px + var(--safe-bot))}
+
+.app-header{position:sticky;top:0;z-index:100;background:rgba(10,22,40,0.94);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:0.5px solid var(--border);padding:calc(var(--safe-top) + 14px) 20px 14px}
+.header-inner{display:flex;align-items:center;gap:12px;max-width:600px;margin:0 auto}
+.app-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.app-icon svg{width:20px;height:20px}
+.header-text h1{font-size:17px;font-weight:600;letter-spacing:-0.3px}
+.header-text p{font-size:12px;color:var(--text2);margin-top:1px}
+.header-badge{margin-left:auto;font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;background:rgba(240,165,0,0.15);color:var(--accent);border:0.5px solid rgba(240,165,0,0.3);white-space:nowrap}
+
+.section{padding:16px 20px 0;max-width:600px;margin:0 auto}
+.progress-card{background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.prog-grid{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr 1px 1fr;gap:8px;margin-bottom:14px}
+.prog-stat{text-align:center}
+.prog-num{font-size:22px;font-weight:700;color:var(--accent);letter-spacing:-0.5px}
+.prog-lbl{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:0.5px}
+.prog-div{background:var(--border)}
+.bar-wrap{display:flex;align-items:center;gap:10px}
+.bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#f5c842);transition:width 0.5s cubic-bezier(.4,0,.2,1)}
+.bar-pct{font-size:12px;font-weight:600;color:var(--accent);min-width:32px;text-align:right}
+
+.month-scroll{display:flex;gap:8px;overflow-x:auto;padding:0 20px 12px;-webkit-overflow-scrolling:touch}
+.month-scroll::-webkit-scrollbar{display:none}
+.month-tab{flex-shrink:0;padding:7px 16px;border-radius:99px;border:0.5px solid var(--border2);background:var(--bg2);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.month-tab.active{background:var(--accent);border-color:var(--accent);color:#0a1628;font-weight:700}
+.mdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:5px;vertical-align:2px}
+
+.sessions{display:flex;flex-direction:column;gap:8px;padding:0 20px;max-width:600px;margin:0 auto}
+.session-card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:border-color .2s}
+.session-card:active{opacity:0.85}
+.session-card.done{border-left:2.5px solid var(--green)}
+.session-card.expanded{border-color:var(--border2)}
+.session-top{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.snum{width:34px;height:34px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:var(--bg3);color:var(--text2)}
+.snum.done{background:var(--green-bg);color:var(--green)}
+.stitle{font-size:14px;font-weight:600;color:var(--text)}
+.ssub{font-size:12px;color:var(--text2);margin-top:2px}
+.sbadge{margin-left:auto;flex-shrink:0;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.4px;padding:4px 9px;border-radius:99px}
+.bt{background:rgba(55,138,221,0.15);color:#62a8f5;border:0.5px solid rgba(55,138,221,0.25)}
+.ba{background:rgba(34,197,94,0.12);color:#4ade80;border:0.5px solid rgba(34,197,94,0.2)}
+.bs{background:rgba(240,165,0,0.14);color:#f5c842;border:0.5px solid rgba(240,165,0,0.25)}
+.bm{background:rgba(167,139,250,0.15);color:#c4b5fd;border:0.5px solid rgba(167,139,250,0.25)}
+.chev{margin-left:8px;color:var(--text3);font-size:10px;transition:transform .2s;flex-shrink:0}
+.expanded .chev{transform:rotate(180deg)}
+
+.session-detail{border-top:0.5px solid var(--border)}
+.theme-hdr{display:flex;align-items:center;gap:8px;padding:10px 16px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+.ct{color:#62a8f5}.ca{color:#4ade80}.cs{color:#f5c842}.cm{color:#c4b5fd}
+
+.ex-list{display:flex;flex-direction:column}
+.ex-item{border-top:0.5px solid var(--border);display:flex}
+.ex-vis{width:96px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--bg3);padding:10px}
+.ex-vis svg{width:76px;height:64px}
+.ex-body{padding:12px 14px;flex:1;min-width:0}
+.ex-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.ex-desc{font-size:12px;color:var(--text2);line-height:1.55}
+.ex-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.ex-tag{font-size:10px;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.05);color:var(--text3);border:0.5px solid var(--border)}
+
+.done-btn{display:flex;align-items:center;justify-content:center;gap:8px;margin:12px 16px 16px;padding:11px;border-radius:10px;border:0.5px solid rgba(240,165,0,0.35);background:rgba(240,165,0,0.08);color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;width:calc(100% - 32px)}
+.done-btn.ok{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+
+.install-hint{position:fixed;bottom:calc(16px + var(--safe-bot));left:50%;transform:translateX(-50%);background:rgba(15,31,61,0.97);border:0.5px solid var(--border2);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 40px rgba(0,0,0,0.5);max-width:calc(100vw - 32px);backdrop-filter:blur(20px);z-index:200;animation:sup .35s ease}
+@keyframes sup{from{opacity:0;transform:translateX(-50%) translateY(16px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.hint-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hint-text p{font-size:13px;font-weight:600;color:var(--text)}
+.hint-text span{font-size:11px;color:var(--text2)}
+.hint-close{margin-left:auto;padding:6px;color:var(--text3);cursor:pointer;font-size:16px;flex-shrink:0;background:none;border:none}
+.spacer{height:24px}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-inner">
+    <div class="app-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>
+      </svg>
+    </div>
+    <div class="header-text">
+      <h1>Torwarttraining</h1>
+      <p>Jugendlicher &middot; 1&times; pro Woche &middot; 45 min</p>
+    </div>
+    <div class="header-badge" id="badge">0 / 20</div>
+  </div>
+</header>
+
+<div class="section">
+  <div class="progress-card">
+    <div class="prog-grid">
+      <div class="prog-stat"><div class="prog-num" id="st-done">0</div><div class="prog-lbl">Erledigt</div></div>
+      <div class="prog-div"></div>
+      <div class="prog-stat"><div class="prog-num" id="st-month">-</div><div class="prog-lbl">Monat</div></div>
+      <div class="prog-div"></div>
+      <div class="prog-stat"><div class="prog-num" id="st-week">-</div><div class="prog-lbl">Woche</div></div>
+      <div class="prog-div"></div>
+      <div class="prog-stat"><div class="prog-num" id="st-left">20</div><div class="prog-lbl">Verbleibend</div></div>
+    </div>
+    <div class="bar-wrap">
+      <div class="bar-bg"><div class="bar-fill" id="bar" style="width:0%"></div></div>
+      <span class="bar-pct" id="pct">0%</span>
+    </div>
+  </div>
+</div>
+
+<div class="month-scroll" id="month-nav"></div>
+<div class="sessions" id="sessions"></div>
+<div class="spacer"></div>
+
+<div class="install-hint" id="hint" style="display:none">
+  <div class="hint-icon">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#0a1628" stroke-width="2.5" stroke-linecap="round">
+      <path d="M12 5v10M8 15l4 4 4-4"/><path d="M5 20h14"/>
+    </svg>
+  </div>
+  <div class="hint-text">
+    <p>Zum Homebildschirm</p>
+    <span>Teilen &rarr; &ldquo;Zum Home-Bildschirm&rdquo;</span>
+  </div>
+  <button class="hint-close" id="hint-close">&#x2715;</button>
+</div>
+
+<script>
+// ── SVG illustrations ──
+var SVGS = {
+  ladder: '<svg viewBox="0 0 76 64" fill="none"><rect x="8" y="6" width="6" height="52" rx="2.5" fill="#378ADD" opacity=".25"/><rect x="62" y="6" width="6" height="52" rx="2.5" fill="#378ADD" opacity=".25"/><rect x="8" y="13" width="60" height="5" rx="2.5" fill="#378ADD" opacity=".7"/><rect x="8" y="26" width="60" height="5" rx="2.5" fill="#378ADD" opacity=".7"/><rect x="8" y="39" width="60" height="5" rx="2.5" fill="#378ADD" opacity=".7"/><rect x="8" y="52" width="60" height="5" rx="2.5" fill="#378ADD" opacity=".7"/><circle cx="30" cy="10" r="4" fill="#f0a500"/><circle cx="46" cy="23" r="4" fill="#f0a500"/><circle cx="30" cy="36" r="4" fill="#f0a500"/><line x1="30" y1="10" x2="46" y2="23" stroke="#f0a500" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="46" y1="23" x2="30" y2="36" stroke="#f0a500" stroke-width="1.5" stroke-dasharray="3 2"/></svg>',
+  catching: '<svg viewBox="0 0 76 64" fill="none"><rect x="24" y="6" width="3" height="38" fill="#6b7280" opacity=".4"/><rect x="49" y="6" width="3" height="38" fill="#6b7280" opacity=".4"/><rect x="22" y="4" width="32" height="3" fill="#6b7280" opacity=".4"/><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="38" cy="25" r="8" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><circle cx="38" cy="25" r="3" fill="none" stroke="#e8931a" stroke-width="1"/><path d="M22 32 L38 25 L54 32" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M18 36 C18 34 20 32 22 32 L22 40 C20 40 18 38 18 36Z" fill="#62a8f5" opacity=".5"/><path d="M58 36 C58 34 56 32 54 32 L54 40 C56 40 58 38 58 36Z" fill="#62a8f5" opacity=".5"/></svg>',
+  cones: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><polygon points="12,50 18,36 24,50" fill="#ef4444" opacity=".8"/><ellipse cx="18" cy="50" rx="6" ry="1.8" fill="#b91c1c" opacity=".4"/><polygon points="34,50 40,36 46,50" fill="#f0a500" opacity=".8"/><ellipse cx="40" cy="50" rx="6" ry="1.8" fill="#b45309" opacity=".4"/><polygon points="52,50 58,36 64,50" fill="#ef4444" opacity=".8"/><ellipse cx="58" cy="50" rx="6" ry="1.8" fill="#b91c1c" opacity=".4"/><circle cx="38" cy="18" r="7" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><line x1="18" y1="36" x2="40" y2="36" stroke="#62a8f5" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="40" y1="36" x2="58" y2="36" stroke="#62a8f5" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="38" y1="25" x2="38" y2="36" stroke="#62a8f5" stroke-width="1.5" stroke-dasharray="3 2"/></svg>',
+  diving: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><rect x="4" y="12" width="3" height="40" fill="#6b7280" opacity=".4"/><rect x="2" y="10" width="18" height="3" fill="#6b7280" opacity=".4"/><circle cx="58" cy="36" r="7" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M10 48 Q22 32 40 34 Q52 36 58 36" stroke="#62a8f5" stroke-width="3" stroke-linecap="round" fill="none"/><circle cx="10" cy="48" r="5" fill="#62a8f5" opacity=".7"/><path d="M6 42 L16 42" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/></svg>',
+  cross: '<svg viewBox="0 0 76 64" fill="none"><rect x="24" y="4" width="3" height="48" fill="#6b7280" opacity=".4"/><rect x="49" y="4" width="3" height="48" fill="#6b7280" opacity=".4"/><rect x="22" y="2" width="32" height="4" fill="#6b7280" opacity=".4"/><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="65" cy="38" r="5" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M65 38 Q50 16 38 22" stroke="#f0a500" stroke-width="2" stroke-dasharray="3 2" fill="none"/><circle cx="38" cy="14" r="6" fill="#62a8f5" opacity=".85"/><path d="M34 20 L42 20 M38 14 L38 24" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M32 26 L44 26" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  throwdist: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><rect x="2" y="10" width="3" height="42" fill="#6b7280" opacity=".3"/><circle cx="16" cy="36" r="6" fill="#62a8f5" opacity=".8"/><path d="M11 42 L21 42 M16 36 L16 46" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M16 36 L22 30" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><circle cx="48" cy="28" r="7" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M22 30 Q32 16 48 28" stroke="#f0a500" stroke-width="2" stroke-dasharray="4 2" fill="none"/><polygon points="62,44 68,36 74,44" fill="#22c55e" opacity=".7"/><ellipse cx="68" cy="44" rx="6" ry="2" fill="#15803d" opacity=".4"/></svg>',
+  position: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><rect x="22" y="10" width="3" height="42" fill="#6b7280" opacity=".4"/><rect x="51" y="10" width="3" height="42" fill="#6b7280" opacity=".4"/><rect x="20" y="8" width="36" height="4" fill="#6b7280" opacity=".4"/><path d="M22 52 Q38 32 54 52" stroke="#62a8f5" stroke-width="1.5" opacity=".35" fill="none"/><path d="M38 52 L38 10" stroke="#62a8f5" stroke-width="1" stroke-dasharray="3 2" opacity=".3"/><circle cx="38" cy="32" r="7" fill="#62a8f5" opacity=".85"/><path d="M34 38 L42 38 M38 32 L38 42" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="22" r="5" fill="#f0a500" stroke="#e8931a" stroke-width="1.2"/><line x1="19" y1="22" x2="32" y2="32" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 2"/></svg>',
+  jump: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="54" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="38" cy="12" r="7" fill="#62a8f5" opacity=".85"/><path d="M32 18 L44 18" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M38 18 L38 32" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M30 42 L38 32 L46 42" stroke="#62a8f5" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M33 19 L26 32 M43 19 L50 32" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><circle cx="62" cy="10" r="6" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M56 10 L44 14" stroke="#f0a500" stroke-width="1.5" stroke-dasharray="3 2"/></svg>',
+  penalty: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><rect x="10" y="14" width="3" height="38" fill="#6b7280" opacity=".4"/><rect x="63" y="14" width="3" height="38" fill="#6b7280" opacity=".4"/><rect x="8" y="12" width="60" height="4" fill="#6b7280" opacity=".4"/><circle cx="38" cy="28" r="7" fill="#62a8f5" opacity=".8"/><path d="M32 35 L44 35" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M38 35 L35 48 M38 35 L41 48" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><circle cx="38" cy="49" r="4" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><circle cx="8" cy="34" r="4" fill="#f0a500" stroke="#e8931a" stroke-width="1.2"/><line x1="8" y1="34" x2="12" y2="30" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="2 2"/></svg>',
+  reflex: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="52" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="38" cy="24" r="7" fill="#62a8f5" opacity=".85"/><path d="M32 31 L44 31" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M38 31 L38 44" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M32 38 L38 44 L44 38" stroke="#62a8f5" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M33 32 L24 24" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><circle cx="14" cy="20" r="6" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M20 20 L24 24" stroke="#f0a500" stroke-width="1.5" stroke-dasharray="3 2"/><path d="M50 16 L60 10 M55 16 L65 16 M55 12 L63 8" stroke="#ef4444" stroke-width="2" stroke-linecap="round" opacity=".65"/></svg>',
+  mental: '<svg viewBox="0 0 76 64" fill="none"><circle cx="38" cy="30" r="18" fill="rgba(167,139,250,0.1)" stroke="#a78bfa" stroke-width="1.5"/><circle cx="38" cy="30" r="11" fill="none" stroke="#a78bfa" stroke-width="1" opacity=".4"/><path d="M38 14 L38 18 M38 42 L38 46 M22 30 L26 30 M50 30 L54 30" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/><circle cx="38" cy="30" r="3.5" fill="#a78bfa"/><path d="M38 30 L38 21" stroke="#a78bfa" stroke-width="2" stroke-linecap="round"/><path d="M38 30 L44 30" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  stretch: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="54" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="38" cy="12" r="5" fill="#62a8f5" opacity=".65"/><path d="M38 17 L38 31" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M28 23 L48 23" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M38 31 L30 44" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M38 31 L46 44" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M30 44 L28 54" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M46 44 L48 54" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/></svg>',
+  slalom: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="54" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><polygon points="10,52 14,40 18,52" fill="#f0a500"/><ellipse cx="14" cy="52" rx="4" ry="1.5" fill="#b45309" opacity=".4"/><polygon points="28,52 32,40 36,52" fill="#ef4444"/><ellipse cx="32" cy="52" rx="4" ry="1.5" fill="#b91c1c" opacity=".4"/><polygon points="46,52 50,40 54,52" fill="#f0a500"/><ellipse cx="50" cy="52" rx="4" ry="1.5" fill="#b45309" opacity=".4"/><polygon points="62,52 66,40 70,52" fill="#ef4444"/><ellipse cx="66" cy="52" rx="4" ry="1.5" fill="#b91c1c" opacity=".4"/><path d="M6 34 Q14 28 24 40 Q32 50 42 34 Q50 22 60 40 Q64 48 70 34" stroke="#62a8f5" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="6" cy="34" r="5" fill="#62a8f5" opacity=".8"/></svg>',
+  sprint: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="54" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><circle cx="16" cy="18" r="6" fill="#62a8f5" opacity=".8"/><path d="M12 24 L20 24" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M16 24 L16 36" stroke="#62a8f5" stroke-width="2.5" stroke-linecap="round"/><path d="M10 32 L16 36 L22 32" stroke="#62a8f5" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M12 25 L8 36 M20 25 L24 36" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M24 27 L56 27" stroke="#ef4444" stroke-width="2" stroke-dasharray="5 3" stroke-linecap="round"/><polygon points="56 27 50 22 50 32" fill="#ef4444"/><circle cx="62" cy="40" r="7" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/></svg>',
+  build: '<svg viewBox="0 0 76 64" fill="none"><rect x="4" y="54" width="68" height="3" rx="1.5" fill="#22c55e" opacity=".3"/><rect x="2" y="10" width="4" height="44" fill="#6b7280" opacity=".3"/><circle cx="16" cy="36" r="6" fill="#62a8f5" opacity=".8"/><path d="M11 42 L21 42 M16 36 L16 46" stroke="#62a8f5" stroke-width="2" stroke-linecap="round"/><path d="M22 36 L40 24" stroke="#f0a500" stroke-width="2" stroke-dasharray="4 2" fill="none"/><circle cx="46" cy="20" r="7" fill="#f0a500" stroke="#e8931a" stroke-width="1.5"/><path d="M53 20 L64 30" stroke="#22c55e" stroke-width="2" stroke-dasharray="4 2" fill="none"/><polygon points="63,28 70,34 60,38" fill="#22c55e" opacity=".7"/></svg>'
+};
+
+// ── Image mapping by exercise name ──
+var IMG_MAP = {
+  'Aufwärmen mit Koordinationsleiter':'ladder',
+  'Leiter-Warm-up Variationen':'ladder',
+  'Leiter + Explosivstart':'ladder',
+  'Sprung-Warm-up mit Leiter':'ladder',
+  'Koordinationshindernis mit Abschluss':'ladder',
+  'Koordination im Ermüdungszustand':'ladder',
+  'Kombinations-Warm-up':'ladder',
+  'Aufwärmen Leiter':'ladder',
+  'Standhalten - Frontalschuesse':'catching',
+  'Flache Flanken fangen':'catching',
+  'Fangsequenz ohne Unterbrechung':'catching',
+  'Schnelle Schussfolge':'catching',
+  'Gemischte Schuesse':'catching',
+  'Dauerstress-Einheit':'catching',
+  'Best-of-Sequenz':'catching',
+  'Erfolgs-Warm-up':'catching',
+  'Huetchen-Reaktion':'cones',
+  'Positionsspiel Huetchen-Tor':'cones',
+  'Huetchen T-Drill':'cones',
+  'Huetchen als Abwehrspieler':'cones',
+  'Szenario-Aufbau':'cones',
+  'Lauf-Warm-up':'cones',
+  'Zielpass unter Zeitdruck':'cones',
+  'Eintauchen auf Baelle rechts/links':'diving',
+  'Scoop-Technik':'diving',
+  'Nahschuss-Parade':'diving',
+  'Praezisionsparade':'diving',
+  'Flanken aus dem Stand fangen':'cross',
+  'Flanken im Lauf':'cross',
+  'Flanken mit Koerperkontakt simuliert':'cross',
+  'Herauslaufen entscheiden':'cross',
+  'Zielabwurf: Bodenwurf':'throwdist',
+  'Zielabwurf: Rollwurf':'throwdist',
+  'Zielabwurf: Ueberkopfwurf auf Distanz':'throwdist',
+  'Ball fangen & sofort aufbauen':'throwdist',
+  'Aufbau-Sequenz':'throwdist',
+  'Langer Aufbau: Zielgenauigkeit':'throwdist',
+  'Kombinationssequenz':'throwdist',
+  'Aufbausituation: Halten + Abstoss':'throwdist',
+  'Abstoss-Technik':'build',
+  'Konter-Szenario':'build',
+  'Positionsspiel unter Druck':'position',
+  'Freies Spiel-Szenario':'position',
+  'Sprungwarm-up':'jump',
+  'Vertikaler Sprung':'jump',
+  'Gleichgewichtsuebung':'jump',
+  'Staerken demonstrieren':'jump',
+  'Starke Parade sammeln':'jump',
+  'Seitwaartssprunge uber Huetchen':'slalom',
+  'Huetchen-Slalom mit Sprung':'slalom',
+  'Koordinations-Parcours':'slalom',
+  'Vollstaendiger Parcours':'slalom',
+  'Drucksituation: Elfmeter':'penalty',
+  'Negativlauf ueberstehen':'penalty',
+  'Fokus-Warm-up':'reflex',
+  'Reaktion auf Ablenkung':'reflex',
+  'Reflexparade nach Ablenkung':'reflex',
+  'Reaktionswechsel':'reflex',
+  'Umschalten: Parade-Sprint-Parade':'reflex',
+  'Aufwaermen Reflexe':'reflex',
+  'Schwierige Situationen meistern':'reflex',
+  'Stresswarm-up':'reflex',
+  'Absichtlicher Fehler & Reset':'reflex',
+  'Visualisierung & Atemuebung':'mental',
+  'Ritualaufbau':'mental',
+  'Ritual-Warm-up':'mental',
+  'Positiv-Visualisierung':'mental',
+  'Koerpersprache-Training':'mental',
+  'Staerken benennen':'mental',
+  'Selbstbewertung':'mental',
+  'Reflexion':'mental',
+  'Ausdauerfeedback':'mental',
+  'Spielverstaendnis-Feedback':'mental',
+  'Kommunikationsfeedback':'mental',
+  'Fortschritts-Vergleich':'mental',
+  'Ziele fuer die naechste Saison':'mental',
+  'Athletik-Bilanz':'mental',
+  'Konzentrations-Sequenz':'mental',
+  'Sprint-Reaktion':'sprint',
+  'Pressing-Simulation':'sprint',
+  'Intensives Intervall':'sprint',
+  'Cool-down':'stretch',
+  'Cool-down & Feedback':'stretch',
+  'Cool-down & Wurfanalyse':'stretch',
+  'Cool-down aktiv':'stretch',
+  'Aufwaermen':'build',
+  'Aufwaermen mit Ansagen':'build',
+  'Aufwaermen mit Anspiel':'build',
+  'Aufwaermen mit Tempo':'build'
+};
+
+// ── Session data ──
+// All special characters replaced with safe equivalents to avoid parsing bugs
+var SESSIONS = [
+  {id:1,m:1,w:1,th:'Technik',f:'Grundhaltung & Fangen',ex:[
+    {n:'Aufwärmen mit Koordinationsleiter',k:'Aufwärmen mit Koordinationsleiter',d:'Laufe verschiedene Muster durch die Leiter: einbeinig, zweibeinig, seitlich. Trainer gibt Kommandos.',t:'8 min',mt:'Leiter'},
+    {n:'Standhalten – Frontalschüsse',k:'Standhalten - Frontalschuesse',d:'Torwart in Grundposition, Trainer schiesst zentral auf Brust- und Bauchhöhe. Fokus: Diamantgriff.',t:'10 min',mt:'Ball'},
+    {n:'Hütchen-Reaktion',k:'Huetchen-Reaktion',d:'5 Hütchen im Halbkreis. Trainer ruft Farbe, Torwart bewegt sich dorthin, dann kommt ein Schuss.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Flache Flanken fangen',k:'Flache Flanken fangen',d:'Trainer flankt flach von der Seite. Torwart tritt heraus, sichert den Ball, baut sofort auf.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down & Feedback',k:'Cool-down & Feedback',d:'Leichtes Dehnen, Trainer gibt Rückmeldung zur Handstellung und zum Stellungsspiel.',t:'7 min',mt:'–'}
+  ]},
+  {id:2,m:1,w:2,th:'Athletik',f:'Koordination & Schnelligkeit',ex:[
+    {n:'Leiter-Warm-up Variationen',k:'Leiter-Warm-up Variationen',d:'Schnelle Ein- und Ausschritte, Knie hoch, Fersen hoch. 3 Durchgänge.',t:'8 min',mt:'Leiter'},
+    {n:'Seitwärtssprünge über Hütchen',k:'Seitwaartssprunge uber Huetchen',d:'6 Hütchen in einer Reihe, Torwart springt seitlich über alle und zurück. 5 Durchgänge.',t:'10 min',mt:'Hütchen'},
+    {n:'Sprint-Reaktion',k:'Sprint-Reaktion',d:'Trainer wirft Ball in eine Ecke, Torwart startet aus Grundposition und rettet den Ball.',t:'10 min',mt:'Ball'},
+    {n:'Koordinationshindernis mit Abschluss',k:'Koordinationshindernis mit Abschluss',d:'Leiter durchlaufen, danach sofort einen Schuss halten. Trainer variiert Tempo und Richtung.',t:'10 min',mt:'Leiter, Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Statisches Dehnen der Hüft- und Wadenmuskulatur, Atemübungen.',t:'7 min',mt:'–'}
+  ]},
+  {id:3,m:1,w:3,th:'Spielaufbau',f:'Abwurf & kurzer Pass',ex:[
+    {n:'Aufwärmen',k:'Aufwaermen',d:'Torwart und Trainer passen sich den Ball flach zu, immer in Bewegung bleiben.',t:'8 min',mt:'Ball'},
+    {n:'Zielabwurf: Bodenwurf',k:'Zielabwurf: Bodenwurf',d:'5 Hütchen als Ziele in 15–25 m. Torwart trifft sie per Bodenwurf. 3 Serien je 5 Würfe.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Zielabwurf: Rollwurf',k:'Zielabwurf: Rollwurf',d:'Gleiche Aufstellung. Rollwurf auf niedrige Hütchen. Trainer gibt Ziel vor.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Ball fangen & sofort aufbauen',k:'Ball fangen & sofort aufbauen',d:'Trainer schiesst, Torwart hält und wirft ohne Pause zum Trainer zurück.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down & Wurfanalyse',k:'Cool-down & Wurfanalyse',d:'Trainer zeigt auf Fehler: Körperdrehung, Standbein, Abgabewinkel.',t:'7 min',mt:'–'}
+  ]},
+  {id:4,m:1,w:4,th:'Mental',f:'Konzentration & Positionsspiel',ex:[
+    {n:'Fokus-Warm-up',k:'Fokus-Warm-up',d:'Torwart steht mit Rücken zum Trainer. Auf Ruf dreht er sich und hält sofort einen Schuss.',t:'8 min',mt:'Ball'},
+    {n:'Positionsspiel Hütchen-Tor',k:'Positionsspiel Huetchen-Tor',d:'Hütchen markieren Torlinie. Trainer schiesst aus verschiedenen Winkeln – Torwart nimmt korrekte Position ein.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Fangsequenz ohne Unterbrechung',k:'Fangsequenz ohne Unterbrechung',d:'10 Schüsse in Folge, kein Stopp. Torwart muss nach jeder Aktion sofort zurück in Position.',t:'12 min',mt:'Ball'},
+    {n:'Visualisierung & Atemübung',k:'Visualisierung & Atemuebung',d:'Torwart schließt die Augen, stellt sich eine schwierige Situation vor, dann reagiert er auf einen echten Schuss.',t:'8 min',mt:'Ball'},
+    {n:'Reflexion',k:'Reflexion',d:'Was war gut? Was war schwierig? Torwart bewertet sich selbst.',t:'7 min',mt:'–'}
+  ]},
+  {id:5,m:2,w:1,th:'Technik',f:'Abwehr am Boden',ex:[
+    {n:'Aufwärmen Leiter',k:'Aufwärmen Leiter',d:'Seitliches Einsteigen in die Leiter, Richtungswechsel auf Kommando.',t:'8 min',mt:'Leiter'},
+    {n:'Eintauchen auf Bälle rechts/links',k:'Eintauchen auf Baelle rechts/links',d:'Trainer rollt Bälle flach links und rechts. Torwart taucht ab und deckt mit dem Körper ab.',t:'10 min',mt:'Ball'},
+    {n:'Scoop-Technik',k:'Scoop-Technik',d:'Ball kommt auf Brusthöhe – Torwart schöpft ihn von unten hoch, sichert ihn am Körper.',t:'10 min',mt:'Ball'},
+    {n:'Reaktion auf Ablenkung',k:'Reaktion auf Ablenkung',d:'Trainer schiesst nach einer Handbewegung. Torwart reagiert erst wenn der Ball das Bein verlässt.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Dehnung Oberschenkel, Schultern, kurze Feedback-Runde.',t:'7 min',mt:'–'}
+  ]},
+  {id:6,m:2,w:2,th:'Athletik',f:'Explosivität & Sprungkraft',ex:[
+    {n:'Sprungwarm-up',k:'Sprungwarm-up',d:'Kniebeugensprünge, seitliche Hüpfer, Standweitsprünge.',t:'8 min',mt:'–'},
+    {n:'Hütchen-Slalom mit Sprung',k:'Huetchen-Slalom mit Sprung',d:'Slalom um 6 Hütchen, am Ende ein Sprung zum Ball, den der Trainer wirft.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Vertikaler Sprung',k:'Vertikaler Sprung',d:'Torwart springt zu Bällen in ca. 2,5 m Höhe. Fokus: Absprung aus dem Stand.',t:'10 min',mt:'Ball'},
+    {n:'Leiter + Explosivstart',k:'Leiter + Explosivstart',d:'Leiter komplett durchlaufen, danach Maximalsprung in eine Ecke.',t:'10 min',mt:'Leiter, Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Statisches Dehnen und Atemübungen.',t:'7 min',mt:'–'}
+  ]},
+  {id:7,m:2,w:3,th:'Spielaufbau',f:'Langer Abwurf & Abstoß',ex:[
+    {n:'Aufwärmen',k:'Aufwaermen',d:'Dynamisches Dehnen, Schulterkreisen, Beinpendel.',t:'8 min',mt:'–'},
+    {n:'Zielabwurf: Überkopfwurf auf Distanz',k:'Zielabwurf: Ueberkopfwurf auf Distanz',d:'Hütchen in 30–35 m. Torwart trifft sie per Überkopfwurf.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Abstoß-Technik',k:'Abstoss-Technik',d:'Fokus auf Treffpunkt, Standbein und Ballplatzierung. Trainer korrigiert.',t:'10 min',mt:'Ball'},
+    {n:'Aufbausituation: Halten + Abstoß',k:'Aufbausituation: Halten + Abstoss',d:'Trainer schiesst, Torwart hält und schlägt sofort lang ab zu Hütchen-Zielen.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Cool-down & Wurfanalyse',k:'Cool-down & Wurfanalyse',d:'Schultern, Rücken, Hüfte dehnen. Feedback zur Wurfweite.',t:'7 min',mt:'–'}
+  ]},
+  {id:8,m:2,w:4,th:'Mental',f:'Fehlerresilienz',ex:[
+    {n:'Stresswarm-up',k:'Stresswarm-up',d:'Trainer schiesst 5 Bälle sehr schnell – Torwart soll nicht nachdenken, nur reagieren.',t:'8 min',mt:'Ball'},
+    {n:'Absichtlicher Fehler & Reset',k:'Absichtlicher Fehler & Reset',d:'Trainer lässt einen Ball rein. Torwart sagt sofort laut Reset und hält die nächsten 3.',t:'10 min',mt:'Ball'},
+    {n:'Konzentrations-Sequenz',k:'Konzentrations-Sequenz',d:'10 Schüsse, nach jedem Gegentor 5 Kniebeugen als Reset-Ritual, dann weitermachen.',t:'12 min',mt:'Ball'},
+    {n:'Positionsspiel unter Druck',k:'Positionsspiel unter Druck',d:'Trainer gibt laut Anweisungen und Kritik – Torwart bleibt ruhig und fokussiert.',t:'8 min',mt:'Ball'},
+    {n:'Selbstbewertung',k:'Selbstbewertung',d:'Torwart gibt Schulnoten für Technik, Konzentration, Reset-Fähigkeit.',t:'7 min',mt:'–'}
+  ]},
+  {id:9,m:3,w:1,th:'Technik',f:'Hohe Bälle & Flanken',ex:[
+    {n:'Sprung-Warm-up mit Leiter',k:'Sprung-Warm-up mit Leiter',d:'Leiter seitlich durchlaufen, am Ende ein vertikaler Sprung.',t:'8 min',mt:'Leiter'},
+    {n:'Flanken aus dem Stand fangen',k:'Flanken aus dem Stand fangen',d:'Trainer flankt aus 15–20 m, Torwart fängt frontal. Fokus: Knie hochziehen beim Sprung.',t:'10 min',mt:'Ball'},
+    {n:'Flanken im Lauf',k:'Flanken im Lauf',d:'Torwart kommt aus der Linie, Trainer wirft Ball in den Laufweg.',t:'10 min',mt:'Ball'},
+    {n:'Flanken mit Körperkontakt simuliert',k:'Flanken mit Koerperkontakt simuliert',d:'Trainer steht neben dem Torwart und berührt ihn leicht beim Sprung.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Schulter- und Nackendehnung. Feedback zur Fußarbeit beim Absprung.',t:'7 min',mt:'–'}
+  ]},
+  {id:10,m:3,w:2,th:'Athletik',f:'Wendigkeit & Umschalten',ex:[
+    {n:'Hütchen T-Drill',k:'Huetchen T-Drill',d:'4 Hütchen aufstellen, Torwart läuft das T-Muster schnellstmöglich. 5 Durchgänge.',t:'8 min',mt:'Hütchen'},
+    {n:'Reaktionswechsel',k:'Reaktionswechsel',d:'Trainer hebt rechten oder linken Arm – Torwart rennt sofort in diese Richtung, dann zurück.',t:'10 min',mt:'–'},
+    {n:'Umschalten: Parade–Sprint–Parade',k:'Umschalten: Parade-Sprint-Parade',d:'Erste Parade, dann Trainer wirft zweiten Ball 5 m zur Seite – sofort reagieren.',t:'12 min',mt:'Ball'},
+    {n:'Koordinations-Parcours',k:'Koordinations-Parcours',d:'Leiter - 3 Hütchen-Slalom - Sprung - Ball halten. Zeitgestoppt.',t:'8 min',mt:'Leiter, Hütchen, Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Hüft- und Schrittwechseldehnung.',t:'7 min',mt:'–'}
+  ]},
+  {id:11,m:3,w:3,th:'Spielaufbau',f:'Kommunikation & Raumkontrolle',ex:[
+    {n:'Aufwärmen mit Ansagen',k:'Aufwaermen mit Ansagen',d:'Trainer und Torwart bauen sich flach an – lautes Ansagen beim Empfangen.',t:'8 min',mt:'Ball'},
+    {n:'Herauslaufen entscheiden',k:'Herauslaufen entscheiden',d:'Trainer schlägt hohe Bälle vor das Tor. Torwart entscheidet laut: Mein Ball oder Lass.',t:'10 min',mt:'Ball'},
+    {n:'Hütchen als Abwehrspieler',k:'Huetchen als Abwehrspieler',d:'4 Hütchen als Mitspieler. Torwart wirft oder passt präzise zwischen die Hütchen.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Aufbau-Sequenz',k:'Aufbau-Sequenz',d:'Trainer schiesst, Torwart hält, sagt laut an, wirft zu einem Ziel-Hütchen.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Kommunikationsfeedback',k:'Kommunikationsfeedback',d:'War die Ansage laut genug? War die Entscheidung richtig?',t:'7 min',mt:'–'}
+  ]},
+  {id:12,m:3,w:4,th:'Mental',f:'Wettkampfvorbereitung',ex:[
+    {n:'Ritualaufbau',k:'Ritualaufbau',d:'Torwart entwickelt sein persönliches Einlaufritual: 3–5 Bewegungen vor jedem Spiel.',t:'8 min',mt:'–'},
+    {n:'Drucksituation: Elfmeter',k:'Drucksituation: Elfmeter',d:'5 Elfmeter in Serie. Torwart soll ruhig bleiben – Haltung bewahren.',t:'10 min',mt:'Ball'},
+    {n:'Negativlauf überstehen',k:'Negativlauf ueberstehen',d:'Trainer schiesst 5 Mal, Torwart hält keinen. Reset-Ritual anwenden.',t:'10 min',mt:'Ball'},
+    {n:'Positiv-Visualisierung',k:'Positiv-Visualisierung',d:'Trainer beschreibt Situation – Torwart stellt sich vor wie er sie löst, dann führt er es aus.',t:'10 min',mt:'Ball'},
+    {n:'Reflexion',k:'Reflexion',d:'Was nehme ich ins nächste Spiel mit? 3 konkrete Punkte.',t:'7 min',mt:'–'}
+  ]},
+  {id:13,m:4,w:1,th:'Technik',f:'Reflex & Nahschuss',ex:[
+    {n:'Aufwärmen Reflexe',k:'Aufwaermen Reflexe',d:'Trainer wirft Ball aus 3 m, Torwart lenkt ihn mit einer Hand ab oder fängt.',t:'8 min',mt:'Ball'},
+    {n:'Nahschuss-Parade',k:'Nahschuss-Parade',d:'Trainer schiesst aus 8–10 m, abwechselnd links/rechts unten. Nur mit dem Bein halten.',t:'10 min',mt:'Ball'},
+    {n:'Reflexparade nach Ablenkung',k:'Reflexparade nach Ablenkung',d:'Trainer schiesst auf Hütchen direkt vor dem Tor – Torwart reagiert auf den Abpraller.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Schnelle Schussfolge',k:'Schnelle Schussfolge',d:'Trainer schiesst alle 4 Sekunden. Torwart muss immer in Grundposition sein.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Dehnung, Feedback: Welche Reaktion war am schnellsten?',t:'7 min',mt:'–'}
+  ]},
+  {id:14,m:4,w:2,th:'Athletik',f:'Ausdauer & Belastbarkeit',ex:[
+    {n:'Lauf-Warm-up',k:'Lauf-Warm-up',d:'5 Minuten lockeres Laufen um die Hütchen, aufgestellt als Rechteck.',t:'8 min',mt:'Hütchen'},
+    {n:'Dauerstress-Einheit',k:'Dauerstress-Einheit',d:'Trainer schiesst 15 Minuten lang in unregelmäßigem Tempo. Torwart bleibt physisch und mental dabei.',t:'15 min',mt:'Ball'},
+    {n:'Koordination im Ermüdungszustand',k:'Koordination im Ermüdungszustand',d:'Leiter durchlaufen und sofort eine Parade halten – 6 Durchgänge.',t:'10 min',mt:'Leiter, Ball'},
+    {n:'Cool-down aktiv',k:'Cool-down aktiv',d:'Lockeres Gehen, tiefes Atmen, Schultern lockern.',t:'7 min',mt:'–'},
+    {n:'Ausdauerfeedback',k:'Ausdauerfeedback',d:'Trainer bewertet Haltung und Konzentration am Ende der Belastungsphase.',t:'5 min',mt:'–'}
+  ]},
+  {id:15,m:4,w:3,th:'Spielaufbau',f:'Pressing & schneller Aufbau',ex:[
+    {n:'Aufwärmen mit Tempo',k:'Aufwaermen mit Tempo',d:'Torwart passt flach an Trainer, läuft sofort 5 m zurück, empfängt – Tempo halten.',t:'8 min',mt:'Ball'},
+    {n:'Pressing-Simulation',k:'Pressing-Simulation',d:'Trainer kommt schnell auf den Torwart zu – Ball schnell sichern und abspielen.',t:'10 min',mt:'Ball'},
+    {n:'Zielpass unter Zeitdruck',k:'Zielpass unter Zeitdruck',d:'Torwart hat 3 Sekunden, um Ball zu halten und zu einem Hütchen-Ziel zu spielen.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Konter-Szenario',k:'Konter-Szenario',d:'Trainer simuliert Konter: Torwart hält, spielt schnell raus – Trainer simuliert Stürmer.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Trainer wertet aus: War der Aufbau schnell und präzise?',t:'7 min',mt:'–'}
+  ]},
+  {id:16,m:4,w:4,th:'Mental',f:'Selbstvertrauen aufbauen',ex:[
+    {n:'Erfolgs-Warm-up',k:'Erfolgs-Warm-up',d:'Trainer stellt einfache Schüsse, die Torwart sicher hält – bewusst mit Erfolgserlebnis starten.',t:'8 min',mt:'Ball'},
+    {n:'Starke Parade sammeln',k:'Starke Parade sammeln',d:'Jede gehaltene Parade: Torwart sagt laut Ja und ballt die Faust.',t:'10 min',mt:'Ball'},
+    {n:'Schwierige Situationen meistern',k:'Schwierige Situationen meistern',d:'Trainer schiesst schwierige Bälle – Torwart soll zuversichtlich wirken, auch wenn er nicht hält.',t:'12 min',mt:'Ball'},
+    {n:'Körpersprache-Training',k:'Koerpersprache-Training',d:'Trainer beobachtet Schultern, Kopfhaltung, Gang. Immer aufrecht, Blick nach vorne.',t:'8 min',mt:'–'},
+    {n:'Stärken benennen',k:'Staerken benennen',d:'Torwart nennt 3 eigene Stärken, Trainer ergänzt. Bewusste Ressourcenaktivierung.',t:'7 min',mt:'–'}
+  ]},
+  {id:17,m:5,w:1,th:'Technik',f:'Kombination & Präzision',ex:[
+    {n:'Kombinations-Warm-up',k:'Kombinations-Warm-up',d:'Leiter durchlaufen, Hütchen umlaufen, Ball fangen – alles in einer Sequenz.',t:'8 min',mt:'Leiter, Hütchen, Ball'},
+    {n:'Gemischte Schüsse',k:'Gemischte Schuesse',d:'Trainer wechselt ohne Muster zwischen flachen, hohen, halbhohen Schüssen.',t:'10 min',mt:'Ball'},
+    {n:'Präzisionsparade',k:'Praezisionsparade',d:'Torwart muss Ball in einem bestimmten Bereich festhalten (z.B. auf Brusthöhe fangen).',t:'10 min',mt:'Ball'},
+    {n:'Kombinationssequenz',k:'Kombinationssequenz',d:'Parade + Abwurf + sofort nächste Parade. 3 in Folge ohne Unterbrechung.',t:'10 min',mt:'Ball'},
+    {n:'Cool-down',k:'Cool-down',d:'Trainer evaluiert technische Entwicklung seit Monat 1.',t:'7 min',mt:'–'}
+  ]},
+  {id:18,m:5,w:2,th:'Athletik',f:'Gesamtkörper & Stabilität',ex:[
+    {n:'Vollständiger Parcours',k:'Vollstaendiger Parcours',d:'Leiter + Hütchen-Slalom + Sprung: alle Elemente als Parcours hintereinander.',t:'8 min',mt:'Leiter, Hütchen'},
+    {n:'Gleichgewichtsübung',k:'Gleichgewichtsuebung',d:'Torwart steht auf einem Bein, Trainer wirft Ball – Torwart hält Balance und fängt.',t:'10 min',mt:'Ball'},
+    {n:'Intensives Intervall',k:'Intensives Intervall',d:'30 Sek. maximale Aktivität (Paraden + Bewegung), 15 Sek. Pause. 6 Runden.',t:'12 min',mt:'Ball'},
+    {n:'Cool-down aktiv',k:'Cool-down aktiv',d:'Lockerungslaufen, Dehnung aller Hauptmuskelgruppen.',t:'8 min',mt:'–'},
+    {n:'Athletik-Bilanz',k:'Athletik-Bilanz',d:'Trainer vergleicht erste und aktuelle Reaktionszeiten und Beweglichkeit.',t:'7 min',mt:'–'}
+  ]},
+  {id:19,m:5,w:3,th:'Spielaufbau',f:'Spielintelligenz & Entscheidungen',ex:[
+    {n:'Aufwärmen mit Anspiel',k:'Aufwaermen mit Anspiel',d:'Trainer und Torwart spielen sich flach an, Torwart entscheidet: kurz oder lang zurück.',t:'8 min',mt:'Ball'},
+    {n:'Szenario-Aufbau',k:'Szenario-Aufbau',d:'Trainer nennt vor jedem Schuss eine Spielsituation. Torwart entscheidet Abspielrichtung.',t:'12 min',mt:'Hütchen, Ball'},
+    {n:'Langer Aufbau: Zielgenauigkeit',k:'Langer Aufbau: Zielgenauigkeit',d:'4 Hütchen-Zonen in verschiedenen Entfernungen. Torwart spielt in die genannte Zone.',t:'10 min',mt:'Hütchen, Ball'},
+    {n:'Freies Spiel-Szenario',k:'Freies Spiel-Szenario',d:'Trainer beschreibt Situation komplex – Torwart agiert frei und erklärt danach seine Entscheidung.',t:'8 min',mt:'Ball'},
+    {n:'Spielverständnis-Feedback',k:'Spielverstaendnis-Feedback',d:'Was war besonders gut? Was würde ein Profi anders machen?',t:'7 min',mt:'–'}
+  ]},
+  {id:20,m:5,w:4,th:'Mental',f:'Abschluss & Saisonreflexion',ex:[
+    {n:'Ritual-Warm-up',k:'Ritual-Warm-up',d:'Torwart führt sein persönliches Einlaufritual durch (entwickelt in Monat 3).',t:'8 min',mt:'–'},
+    {n:'Best-of-Sequenz',k:'Best-of-Sequenz',d:'Trainer schiesst eine Mischung der schwierigsten Bälle aus allen Monaten.',t:'10 min',mt:'Ball'},
+    {n:'Stärken demonstrieren',k:'Staerken demonstrieren',d:'Torwart wählt seine Lieblingsparade und zeigt sie 5 Mal in perfekter Form.',t:'10 min',mt:'Ball, Hütchen'},
+    {n:'Fortschritts-Vergleich',k:'Fortschritts-Vergleich',d:'Was hat sich in 5 Monaten verbessert? Technik, Athletik, Spielaufbau, Mental.',t:'10 min',mt:'–'},
+    {n:'Ziele für die nächste Saison',k:'Ziele fuer die naechste Saison',d:'Torwart und Trainer setzen gemeinsam 3 konkrete Ziele für die nächsten Monate.',t:'7 min',mt:'–'}
+  ]}
+];
+
+var BADGE_CLS = {Technik:'bt',Athletik:'ba',Spielaufbau:'bs',Mental:'bm'};
+var THEME_CLS  = {Technik:'ct',Athletik:'ca',Spielaufbau:'cs',Mental:'cm'};
+var THEME_ICON = {Technik:'◈',Athletik:'⚡',Spielaufbau:'➤',Mental:'◎'};
+
+var currentMonth = 1;
+var expanded = null;
+var done = [];
+try { done = JSON.parse(localStorage.getItem('gk_v4') || '[]'); } catch(e) {}
+
+function save() { try { localStorage.setItem('gk_v4', JSON.stringify(done)); } catch(e) {} }
+function isDone(id) { return done.indexOf(id) !== -1; }
+function getImg(key) { return SVGS[IMG_MAP[key] || 'catching'] || SVGS['catching']; }
+
+function toggleDone(id) {
+  if (isDone(id)) {
+    done = done.filter(function(d){ return d !== id; });
+  } else {
+    done.push(id);
+  }
+  save();
+  render();
+}
+
+function toggleExp(id) {
+  expanded = (expanded === id) ? null : id;
+  render();
+}
+
+function render() {
+  var n = done.length;
+  document.getElementById('badge').textContent = n + ' / 20';
+  document.getElementById('st-done').textContent = n;
+  document.getElementById('st-left').textContent = 20 - n;
+  var pct = Math.round(n / 20 * 100);
+  document.getElementById('bar').style.width = pct + '%';
+  document.getElementById('pct').textContent = pct + '%';
+  var next = null;
+  for (var i = 0; i < SESSIONS.length; i++) {
+    if (!isDone(SESSIONS[i].id)) { next = SESSIONS[i]; break; }
+  }
+  document.getElementById('st-month').textContent = next ? next.m : '✓';
+  document.getElementById('st-week').textContent  = next ? 'KW ' + next.w : '✓';
+
+  // Month nav
+  var nav = document.getElementById('month-nav');
+  nav.innerHTML = '';
+  for (var m = 1; m <= 5; m++) {
+    (function(mi){
+      var doneCnt = SESSIONS.filter(function(s){ return s.m === mi && isDone(s.id); }).length;
+      var btn = document.createElement('button');
+      btn.className = 'month-tab' + (mi === currentMonth ? ' active' : '');
+      btn.innerHTML = 'Monat ' + mi + (doneCnt === 4 ? '<span class="mdot"></span>' : '');
+      btn.addEventListener('click', function(){ currentMonth = mi; render(); });
+      nav.appendChild(btn);
+    })(m);
+  }
+
+  // Sessions
+  var grid = document.getElementById('sessions');
+  grid.innerHTML = '';
+  var filtered = SESSIONS.filter(function(s){ return s.m === currentMonth; });
+  filtered.forEach(function(s) {
+    var isExp = (expanded === s.id);
+    var isDn  = isDone(s.id);
+
+    var card = document.createElement('div');
+    card.className = 'session-card' + (isDn ? ' done' : '') + (isExp ? ' expanded' : '');
+
+    // Header
+    var top = document.createElement('div');
+    top.className = 'session-top';
+    top.innerHTML =
+      '<div class="snum' + (isDn ? ' done' : '') + '">' + (isDn ? '✓' : 'W' + s.id) + '</div>' +
+      '<div><div class="stitle">' + s.f + '</div><div class="ssub">' + s.th + ' · 45 Minuten · Woche ' + s.w + '</div></div>' +
+      '<span class="sbadge ' + BADGE_CLS[s.th] + '">' + s.th + '</span>' +
+      '<span class="chev">&#9660;</span>';
+    top.addEventListener('click', function(){ toggleExp(s.id); });
+    card.appendChild(top);
+
+    // Detail (expanded)
+    if (isExp) {
+      var detail = document.createElement('div');
+      detail.className = 'session-detail';
+
+      var thdr = document.createElement('div');
+      thdr.className = 'theme-hdr ' + THEME_CLS[s.th];
+      thdr.textContent = THEME_ICON[s.th] + ' ' + s.th + ': ' + s.f;
+      detail.appendChild(thdr);
+
+      var exList = document.createElement('div');
+      exList.className = 'ex-list';
+
+      s.ex.forEach(function(ex) {
+        var item = document.createElement('div');
+        item.className = 'ex-item';
+
+        var vis = document.createElement('div');
+        vis.className = 'ex-vis';
+        vis.innerHTML = getImg(ex.k);
+
+        var body = document.createElement('div');
+        body.className = 'ex-body';
+        body.innerHTML =
+          '<div class="ex-name">' + ex.n + '</div>' +
+          '<div class="ex-desc">' + ex.d + '</div>' +
+          '<div class="ex-tags"><span class="ex-tag">&#9201; ' + ex.t + '</span><span class="ex-tag">&#127947; ' + ex.mt + '</span></div>';
+
+        item.appendChild(vis);
+        item.appendChild(body);
+        exList.appendChild(item);
+      });
+      detail.appendChild(exList);
+
+      var btn = document.createElement('button');
+      btn.className = 'done-btn' + (isDn ? ' ok' : '');
+      btn.textContent = isDn ? '✓ Einheit abgeschlossen' : 'Einheit als erledigt markieren';
+      btn.addEventListener('click', function(){ toggleDone(s.id); });
+      detail.appendChild(btn);
+
+      card.appendChild(detail);
+    }
+
+    grid.appendChild(card);
+  });
+}
+
+// Install hint
+document.getElementById('hint-close').addEventListener('click', function(){
+  document.getElementById('hint').style.display = 'none';
+});
+setTimeout(function(){
+  try {
+    var isInBrowser = (window.navigator.standalone === false) ||
+                      window.matchMedia('(display-mode: browser)').matches;
+    if (isInBrowser) {
+      document.getElementById('hint').style.display = 'flex';
+      setTimeout(function(){
+        var h = document.getElementById('hint');
+        if (h) h.style.display = 'none';
+      }, 8000);
+    }
+  } catch(e) {}
+}, 1500);
+
+render();
+</script>
+</body>
+</html>
